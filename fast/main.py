@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 from typing import Optional
 
 app = FastAPI(
@@ -18,6 +18,48 @@ usuarios = [
 @app.get("/", tags=["Hola Mundo"])
 def home():
     return {"hello": "world FastAPI"}
+
+
+# Endpoint consulta todos
+@app.get("/todosUsuarios", tags=["Operaciones CRUD"])
+def leerUsuarios():
+    return {"los usuarios registrados son": usuarios}
+
+# Endpoint Agregar usuarios nuevos
+@app.post("/usuario/", tags=["Operaciones CRUD"])
+def AgregarUsuarios(usuario:dict):
+    for usr in usuarios: 
+        if usr["id"] == usuario.get("id"):
+            raise HTTPException(status_code=400, detail="Id ya existe")
+
+    usuarios.append(usuario)
+    return usuario
+
+# Endpoint Actualizar 
+@app.get("/todosUsuarios", tags=["Operaciones CRUD"])
+def leerUsuarios():
+    return {"los usuarios registrados son": usuarios}
+
+# Endpoint para actualizar un usuario
+@app.put("/usuario/{id}", tags=["Operaciones CRUD"])
+def actualizar_usuario(id: int, usuarioActualizado: dict):
+    for index, usr in enumerate(usuarios):
+        if usr["id"] == id:
+            usuarios[index].update(usuarioActualizado)
+            return usuarios[index]
+    
+    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+
+
+
+
+
+
+
+
+
+
 
 # Endpoint de promedio
 @app.get("/promedio", tags=["Operaciones"])
