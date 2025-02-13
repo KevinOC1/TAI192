@@ -50,6 +50,15 @@ def actualizar_usuario(id: int, usuarioActualizado: dict):
     
     raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
+# Endpoint para borrar DELETE
+@app.delete("/usuario/{id}", tags=["Operaciones CRUD"])
+def borrar_usuario(id: int, usuarioBorrado: dict):
+    for index, usr in enumerate(usuarios):
+        if usr["id"] == id:
+            del usuarios[index]
+            return ( usuarios[index])
+    
+    raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
 
 
