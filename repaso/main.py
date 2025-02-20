@@ -21,12 +21,12 @@ tareas = [
 ]
 
 # Obtener todas las tareas
-@app.get("/tareas", tags=["Operaciones CRUD"])
+@app.get("/tareas/", tags=["Operaciones CRUD"])
 def obtenertareas():
     return {"tareas": tareas}
 
 # Obtener una tarea por ID
-@app.get("/tarea/{id}", tags=["Operaciones CRUD"])
+@app.get("/tareas/obtenet/{id}", tags=["Operaciones CRUD"])
 def obtenertarea(id: int):
     for tarea in tareas:
         if tarea["id"] == id:
@@ -34,7 +34,7 @@ def obtenertarea(id: int):
     raise HTTPException(status_code=404, detail="Tarea no encontrada")
 
 # Crear una nueva tarea
-@app.post("/tarea", tags=["Operaciones CRUD"])
+@app.post("/tareas/agregar", tags=["Operaciones CRUD"])
 def creartarea(nuevatarea: Dict):
     for tarea in tareas:
         if tarea["id"] == nuevatarea.get("id"):
@@ -43,7 +43,7 @@ def creartarea(nuevatarea: Dict):
     return nuevatarea
 
 # Actualizar una tarea existente
-@app.put("/tarea/{id}", tags=["Operaciones CRUD"])
+@app.put("/tareas/actualizar/{id}", tags=["Operaciones CRUD"])
 def actualizartarea(id: int, tareaactualizada: Dict):
     for index, tarea in enumerate(tareas):
         if tarea["id"] == id:
@@ -52,7 +52,7 @@ def actualizartarea(id: int, tareaactualizada: Dict):
     raise HTTPException(status_code=404, detail="Tarea no encontrada")
 
 # Eliminar una tarea
-@app.delete("/tarea/{id}", tags=["Operaciones CRUD"])
+@app.delete("/tareas/del/{id}", tags=["Operaciones CRUD"])
 def eliminartarea(id: int):
     for index, tarea in enumerate(tareas):
         if tarea["id"] == id:
