@@ -1,6 +1,9 @@
-from fastapi import FastAPI,HTTPException
-from typing import Optional, List
-from models import modeloUsuario
+from fastapi import FastAPI, HTTPException,Depends
+from fastapi.responses import JSONResponse
+from typing import Optional,List
+from modelsPydantic import modeloUsuario, modeloAuth
+from genToken import createToken
+from middleware import BearerJWT
 
 app = FastAPI(
     title="Mi Primer API 192",
@@ -17,103 +20,57 @@ usuarios = [
     {"id": 4, "nombre": "Lucía", "edad": 37, "correo":"example4@example.com"},
 ]
 
-# Endpoint home
-@app.get("/", tags=["Hola Mundo"])
+
+#Endpoint home
+@app.get('/', tags=['Hola Mundo'])
 def home():
-    return {"hello": "world FastAPI"}
+    return "Hola Mundo"
 
+#Endpoitn Autenticacion
+@app.post('/auth', tags=["Autentificacion"])
+def login(autorizacion:modeloAuth):
+    if autorizacion.correo == 'kevin@example.com' and autorizacion.passw == '123456789':
+        token:str = createToken(autorizacion.model_dump())
+        print(token)
+        return JSONResponse(token)
+    else:
+        return{"Usuario no registrado"}
 
-# Endpoint consulta todos
-@app.get("/todosUsuarios", response_model=List[modeloUsuario], tags=["Operaciones CRUD"])
+# Endpoint CONSULTA TODOS
+@app.get("/todosUsuarios", dependencies=[Depends(BearerJWT())],response_model=List[modeloUsuario], tags=["Operaciones CRUD"])
 def leerUsuarios():
-    return  usuarios
+    return usuarios
 
-# Endpoint Agregar usuarios nuevos
-@app.post("/usuario/", response_model=modeloUsuario, tags=["Operaciones CRUD"])
-def AgregarUsuarios(usuario:modeloUsuario):
-    for usr in usuarios: 
+
+
+#Endpoint Agregar nuevos
+@app.post('/usuario/', response_model= modeloUsuario, tags=['Operaciones CRUD'])
+def agregarUsuario(usuario:modeloUsuario):
+    for usr in usuarios:
         if usr["id"] == usuario.id:
-            raise HTTPException(status_code=400, detail="Id ya existe")
-
-    usuarios.append(usuario)
+            raise HTTPException(status_code=400, detail="el ID ya esta en uso ")
+    usuarios.append(usuario)        
     return usuario
 
-# Endpoint Actualizar 
-@app.get("/todosUsuarios", tags=["Operaciones CRUD"])
-def leerUsuarios():
-    return {"los usuarios registrados son": usuarios}
-
-# Endpoint para actualizar un usuario
-@app.put("/usuario/{id}", response_model=modeloUsuario, tags=["Operaciones CRUD"])
-def actualizar_usuario(id: int, usuarioActualizado: modeloUsuario):
+#Endpoint actualizar usuraios(put)
+@app.put('/usuarios/{id}', response_model= modeloUsuario, tags=['Operaciones CRUD'])
+def actualizar(id:int, usuarioActualizado:modeloUsuario):
     for index, usr in enumerate(usuarios):
         if usr["id"] == id:
-            usuarios[index] = usuarioActualizado.model_dump()
+            usuarios[index]=usuarioActualizado.model_dump()
             return usuarios[index]
-    
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    raise HTTPException(status_code=400, detail="El usuario no existe") 
 
-# Endpoint para borrar DELETE
-@app.delete("/usuario/{id}", tags=["Operaciones CRUD"])
-def borrar_usuario(id: int, usuarioBorrado: dict):
+
+@app.delete('/usuarios/borrar', tags=['Operaciones Crud'])
+def eliminar(id:int):
     for index, usr in enumerate(usuarios):
         if usr["id"] == id:
             del usuarios[index]
-            return ( usuarios[index])
-    
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            return {'Usuario eliminado': usuarios}
+    raise HTTPException(status_code=400, detail="El usuario no existe")
 
 
 
 
 
-
-
-
-
-
-
-# Endpoint de promedio
-@app.get("/promedio", tags=["Operaciones"])
-def promedio():
-    return {"promedio": 6.1}
-
-# Endpoint con parámetro obligatorio en la URL
-@app.get("/usuario/{id}", tags=["Parámetro Obligatorio"])
-def consulta_usuario(id: int):
-    for usuario in usuarios:
-        if usuario["id"] == id:
-            return {"mensaje": "Usuario encontrado", "usuario": usuario}
-    return {"mensaje": f"Usuario con id {id} no encontrado"}
-
-@app.get("/usuario", tags=["Parámetro Opcional"])
-def consulta_usuario2(id: Optional[int] = None):
-    if id is not None:
-        for usuario in usuarios:
-            if usuario["id"] == id:
-                return {"mensaje": "Usuario encontrado", "usuario": usuario}
-        return {"mensaje": f"Usuario con id {id} no encontrado"}
-    return {"mensaje": "No se proporcionó un id"}
-
-
-#endpoint con varios parametro opcionales
-@app.get("/usuarios/", tags=["3 parámetros opcionales"])
-async def consulta_usuarios3(
-    usuario_id: Optional[int] = None,
-    nombre: Optional[str] = None,
-    edad: Optional[int] = None
-):
-    resultados = []
-
-    for usuario in usuarios:
-        if (
-            (usuario_id is None or usuario["id"] == usuario_id) and
-            (nombre is None or usuario["nombre"].lower() == nombre.lower()) and
-            (edad is None or usuario["edad"] == edad)
-        ):
-            resultados.append(usuario)
-
-    if resultados:
-        return {"usuarios_encontrados": resultados}
-    else:
-        return {"mensaje": "No se encontraron usuarios que coincidan con los parámetros proporcionados."}
