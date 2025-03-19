@@ -4,12 +4,17 @@ from typing import Optional,List
 from modelsPydantic import modeloUsuario, modeloAuth
 from genToken import createToken
 from middleware import BearerJWT
+from DB.conexion import session, engine,  Base
+from models.modelsDB import User
 
 app = FastAPI(
     title="Mi Primer API 192",
     description="Kevin Oredaz",
     version="1.0.1",
 )
+
+
+Base.metadata.create_all(bind=engine)
 
 
 

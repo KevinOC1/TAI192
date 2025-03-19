@@ -10,5 +10,5 @@ class modeloUsuario(BaseModel):
 
 
 class modeloAuth(BaseModel):
-    correo: EmailStr = Field(..., description="Debe ser un correo electrónico válido", example="example@gmail.com")
+    correo: EmailStr = Field(..., description="Debe ser un correo electrónico válido", example="kevin@gmail.com")
     passw: str = Field(..., min_lenght=8,strip_whitespace=True, description= "contraseña minima de 8 caracteres")
